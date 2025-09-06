@@ -4,18 +4,25 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
-import java.util.Objects;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity(name = "users")
 @Data
+@Getter
+@Setter
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
+
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
 
     @Column(name = "username", unique = true, nullable = false, updatable = false)
     private String username;
@@ -36,8 +43,16 @@ public class User {
     private String countryCode;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Address> addressList;
+    private Set<Address> addresses;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Transaction> transaction;
+    private Set<Transaction> transactions;
+
+    @OneToMany(mappedBy = "owner")
+    private Set<Package> packages;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

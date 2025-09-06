@@ -4,11 +4,16 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Data
+@Getter
+@Setter
 @Table(name = "address")
 public class Address {
     @Id
@@ -26,6 +31,7 @@ public class Address {
 
     @Column(name = "apt_or_suite", nullable = false)
     private String aptOrSuite;
+
     @Column(nullable = false)
     private String country;
 
@@ -49,7 +55,13 @@ public class Address {
 
     @Column(name = "is_billing_addr")
     private boolean isBilling = false;
+
     @Column(name = "is_shipping_addr")
     private boolean isShipping = true;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }
 

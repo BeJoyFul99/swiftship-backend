@@ -7,11 +7,8 @@ import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @Log
@@ -19,7 +16,7 @@ public class statusController {
     @Value("${spring.application.name}")
     private String appName;
 
-    private TestService testService;
+    private final TestService testService;
 
     public statusController(TestService testService) {
         this.testService = testService;
@@ -31,7 +28,7 @@ public class statusController {
         return String.format("Welcome to %s", this.appName);
     }
 
-    @GetMapping(path = "/test-list")
+    @GetMapping(path = "/api/test-list")
     public ResponseEntity<String> listTest() {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
