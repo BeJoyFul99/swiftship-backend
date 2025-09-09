@@ -17,7 +17,6 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)// Disables CSRF protection for simplicity in a REST API
                 .authorizeHttpRequests(authorize -> authorize.requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().permitAll() // Allows all requests without authentication
                 );
         return http.build();
     }

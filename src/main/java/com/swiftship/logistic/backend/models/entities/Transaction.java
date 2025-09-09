@@ -1,5 +1,6 @@
 package com.swiftship.logistic.backend.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.swiftship.logistic.backend.models.enums.TransactionStatus;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -33,6 +34,7 @@ public class Transaction {
 
     @OneToMany
     @JoinColumn(name = "package_id")
+    @JsonBackReference
     private Set<Package> packages;
 
     @CreationTimestamp

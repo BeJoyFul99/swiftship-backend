@@ -1,5 +1,6 @@
 package com.swiftship.logistic.backend.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.swiftship.logistic.backend.models.enums.PackageStatus;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -32,6 +33,7 @@ public class Package {
     private String trackingNumber;
 
     @ManyToOne
+    @JsonManagedReference
     private Transaction transaction;
 
     private double weight_grams;
