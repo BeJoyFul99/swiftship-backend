@@ -55,6 +55,11 @@ public class User {
     @OneToMany(mappedBy = "owner")
     private Set<Package> packages;
 
+    @Column(name = "is_account_locked")
+    private Boolean isAccountLocked = false;
+
+    @Column(name = "is_account_verified")
+    private Boolean isAccountVerified = false;
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp

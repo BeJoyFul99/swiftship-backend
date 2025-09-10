@@ -1,10 +1,11 @@
 package com.swiftship.logistic.backend.controllers;
 
-import com.swiftship.logistic.backend.models.dto.LoginDto;
-import com.swiftship.logistic.backend.models.dto.LoginResponseDto;
+import com.swiftship.logistic.backend.models.dto.*;
 import com.swiftship.logistic.backend.models.entities.User;
 import com.swiftship.logistic.backend.models.enums.StatusCode;
 import com.swiftship.logistic.backend.services.AuthService;
+import com.swiftship.logistic.backend.services.JwtService;
+import com.swiftship.logistic.backend.services.UserService;
 import lombok.extern.java.Log;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -22,48 +25,103 @@ import java.util.Optional;
 @Log
 public class AuthController {
     public final AuthService authService;
+    public final JwtService jwtService;
+    public final UserService userService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, JwtService jwtService, UserService userService) {
         this.authService = authService;
+        this.jwtService = jwtService;
+        this.userService = userService;
     }
 
     //learning
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> authenticateUser(@RequestBody LoginDto loginDto) {
-        log.info("Got a Connection");
-        log.info(loginDto.getEmail() + " " + loginDto.getPassword());
+    public ResponseEntity<ResponseDto> authenticateUser(@RequestBody LoginDto loginDto) {
         try {
             User user = authService.authenticate(loginDto);
             // Assuming you have a JWT token generation service
-            String token = "your_generated_jwt_token";
-            LoginResponseDto responseDto = new LoginResponseDto(
-                    Optional.of(token),
-                    "User logged in successfully!",
-                    StatusCode.LOGIN_SUCCESS
-            );
+            Map<String, Object> extraClaims = new HashMap<>();
+            extraClaims.put("role", user.getRole().getRole());
+            String token = this.jwtService.generateToken(extraClaims, user);
+            LoginResponseDto responseDto = getLoginResponseDto(user, token);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
 
         } catch (UsernameNotFoundException ex) {
-            LoginResponseDto resDto = new LoginResponseDto(
-                    null,
+            ResponseDto resDto = new ResponseDto(
                     ex.getMessage(),
                     StatusCode.INVALID_CREDENTIALS
             );
             return new ResponseEntity<>(resDto, HttpStatus.UNAUTHORIZED);
         } catch (BadCredentialsException ex) {
-            LoginResponseDto resDto = new LoginResponseDto(
-                    null,
+            ResponseDto resDto = new ResponseDto(
                     ex.getMessage(),
                     StatusCode.INVALID_CREDENTIALS
             );
             return new ResponseEntity<>(resDto, HttpStatus.UNAUTHORIZED);
         } catch (Exception ex) {
-            LoginResponseDto resDto = new LoginResponseDto(
-                    null,
-                    ex.getMessage(),
+            ResponseDto resDto = new ResponseDto(
+                    "internal server error",
                     StatusCode.INTERNAL_SERVER_ERROR
             );
+            log.info(ex.getMessage());
             return new ResponseEntity<>(resDto, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private static LoginResponseDto getLoginResponseDto(User user, String token) {
+        UserResponseDto userDto = new UserResponseDto(
+                user.getId(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getUsername(),
+                user.getCountryCode(),
+                user.getPhone(),
+                user.getRole().getRole(),
+                user.getIsAccountLocked(),
+                user.getIsAccountVerified(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
+        );
+        return new LoginResponseDto(
+                Optional.of(token),
+                userDto,
+                "User logged in successfully!",
+                StatusCode.LOGIN_SUCCESS
+        );
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<ResponseDto> signup(@RequestBody SignUpDto signUpDto) {
+        try {
+            // In a real app, you'd check if email exists before creating
+            if (userService.findByEmail(signUpDto.getEmail())) {
+                return new ResponseEntity<>(
+                        new ResponseDto(
+                                "Email already exists.",
+                                StatusCode.EMAIL_ALREADY_EXISTS
+                        ), HttpStatus.CONFLICT
+                );
+            }
+            if (userService.findByUsername(signUpDto.getUsername())) {
+                return new ResponseEntity<>(
+                        new ResponseDto(
+                                "Username already exists.",
+                                StatusCode.USERNAME_ALREADY_EXISTS
+                        ), HttpStatus.CONFLICT
+                );
+            }
+            userService.registerNewUser(signUpDto); // Your service method to create user
+            return new ResponseEntity<>(
+                    new ResponseDto("User registered successfully!", StatusCode.REGISTRATION_SUCCESS),
+                    HttpStatus.CREATED // Use 201 Created for new resource
+            );
+        } catch (Exception e) {
+            // Log the exception
+            return new ResponseEntity<>(
+                    new ResponseDto("Registration failed " + e.getMessage(), StatusCode.UNKOWN_ERROR),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 

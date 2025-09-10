@@ -21,12 +21,12 @@ public class AuthService {
     }
 
     public User authenticate(LoginDto loginDto) {
-        User user = Optional.ofNullable(userRepository.findByEmail(loginDto.getEmail())).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user = userRepository.findByEmail(loginDto.getEmail()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if (!this.passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
             throw new BadCredentialsException("Invalid password");
         }
         return user;
-
     }
+
 
 }
