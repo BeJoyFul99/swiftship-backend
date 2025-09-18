@@ -4,6 +4,7 @@ public enum StatusCode {
     //     Authentication
 
     LOGIN_SUCCESS,          // user has successfully authenticated.  200 OK
+    LOGOUT_SUCCESS,
     REGISTRATION_SUCCESS,   //	A new user account has been created successfully.	201 Created
     INVALID_CREDENTIALS,    //	The provided username or password was incorrect.	401 Unauthorized
     ACCOUNT_LOCKED,         //The user account is temporarily locked due to too many failed login attempts.	403 Forbidden

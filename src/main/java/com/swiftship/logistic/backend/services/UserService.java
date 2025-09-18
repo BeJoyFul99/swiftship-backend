@@ -55,7 +55,8 @@ public class UserService {
         return this.userRepository.findByEmail(email).isPresent();
     }
 
-    public Boolean findByUsername(String username) {
-        return this.userRepository.findByUsername(username).isPresent();
+
+    public Optional<User> findByUsername(String username) {
+        return this.userRepository.findByUsername(username);
     }
 }

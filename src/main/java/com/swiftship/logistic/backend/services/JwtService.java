@@ -4,8 +4,12 @@ import com.swiftship.logistic.backend.models.entities.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -17,6 +21,7 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
+    @Getter
     @Value("${jwt.expiration}")
     private long jwtExpirationInMs;
     private SecretKey cachedSigningKey;
@@ -47,6 +52,24 @@ public class JwtService {
 
     public Claims getClaimsFromJwt(String token) {
         return Jwts.parser().verifyWith(this.getSigningKey()).build().parseSignedClaims(token).getPayload();
+    }
+
+    // Your existing getJwtFromRequest method
+    public String getJwtFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("jwt_token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 
     public Boolean validateToken(String token) {

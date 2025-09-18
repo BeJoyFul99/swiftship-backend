@@ -14,7 +14,6 @@ import java.util.Optional;
 @Setter
 @AllArgsConstructor
 public class LoginResponseDto extends ResponseDto {
-    private Optional<String> jwt_token;
     private UserResponseDto user;
     private String message;
     private StatusCode code;
