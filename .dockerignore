@@ -1,0 +1,9 @@
+
+target/
+*.md
+.git
+.gitignore
+README.md
+npm-debug.log
+Dockerfile
+.dockerignore

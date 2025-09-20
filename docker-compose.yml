@@ -1,5 +1,20 @@
 version: '3.8'
 services:
+  swiftship-backend:
+    build: .
+    container_name: swiftship-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - JAVA_OPTS=-XX:+UseZGC -XX:MaxRAMPercentage=75.0
+      - SPRING_PROFILES_ACTIVE=container
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/swiftship_db
+      - SPRING_DATASOURCE_USERNAME=swiftship
+      - SPRING_DATASOURCE_PASSWORD=swiftship_admin_123
+    depends_on:
+      - db
+    networks:
+      - app-network
   db:
     image: postgres:latest
     container_name: swiftShip-db
@@ -9,9 +24,14 @@ services:
       POSTGRES_PASSWORD: swiftship_admin_123
       POSTGRES_DB: swiftship_db
     ports:
-        - "5432:5432"
+      - "5432:5432"
     volumes:
-        - swiftShip_pgdata:/var/lib/postgresql/data
-
+      - swiftShip_pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
 volumes:
   swiftShip_pgdata:
+
+networks:
+  app-network:
+    driver: bridge
