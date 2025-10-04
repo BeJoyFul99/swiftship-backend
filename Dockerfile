@@ -1,17 +1,11 @@
 FROM maven:3.9.11-eclipse-temurin-24-noble AS build
 WORKDIR /app
-
 COPY pom.xml .
 COPY src ./src
-RUN java -version
-RUN javac -version
 RUN mvn clean package -DskipTests
-RUN ls -la .
 
 FROM eclipse-temurin:24-jre-alpine AS runtime
-
 WORKDIR /app
-
 COPY --from=build  /app/target/*.jar ./app.jar
 
 # Expose port 8080

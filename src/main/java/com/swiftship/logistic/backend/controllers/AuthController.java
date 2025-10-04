@@ -12,7 +12,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.java.Log;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -22,7 +21,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -57,7 +55,7 @@ public class AuthController {
                     .sameSite("Lax")
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
-            LoginResponseDto responseDto = getLoginResponseDto(user);
+            LoginResponseDto responseDto = new LoginResponseDto(getUserResponseDto(user), "User logged in successfully!", StatusCode.LOGIN_SUCCESS);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
 
         } catch (UsernameNotFoundException ex) {
@@ -73,9 +71,8 @@ public class AuthController {
         }
     }
 
-    private static LoginResponseDto getLoginResponseDto(User user) {
-        UserResponseDto userDto = new UserResponseDto(user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getUsername(), user.getCountryCode(), user.getPhone(), user.getRole().getRole(), user.getIsAccountLocked(), user.getIsAccountVerified(), user.getCreatedAt(), user.getUpdatedAt());
-        return new LoginResponseDto(userDto, "User logged in successfully!", StatusCode.LOGIN_SUCCESS);
+    private static UserResponseDto getUserResponseDto(User user) {
+        return new UserResponseDto(user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getUsername(), user.getCountryCode(), user.getPhone(), user.getRole().getRole(), user.getIsAccountLocked(), user.getIsAccountVerified(), user.getCreatedAt(), user.getUpdatedAt());
     }
 
     @PostMapping("/signup")
@@ -100,11 +97,16 @@ public class AuthController {
 
     @GetMapping("/validate-jwt")
     public ResponseEntity<ResponseWithDataDto> validateJwt(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        String jwtToken = cookies[0].getValue();
+        log.info("Validating");
+        String jwtToken = this.jwtService.getJwtFromRequest(request);
         Boolean isValidated = this.jwtService.validateToken(jwtToken);
-        Map<String, Boolean> data = new HashMap<>();
+        Claims claims = jwtService.getClaimsFromJwt(jwtToken);
+        String userName = claims.getSubject();
+
+        Map<String, Object> data = new HashMap<>();
+        User user = this.userService.findByUsername(userName).get();
         data.put("isValidated", isValidated);
+        data.put("user", getUserResponseDto(user));
         return new ResponseEntity<>(new ResponseWithDataDto(null, data, StatusCode.OPERATION_SUCCESS), HttpStatus.OK);
 
     }

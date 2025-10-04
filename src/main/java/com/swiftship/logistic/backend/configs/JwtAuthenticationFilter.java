@@ -55,7 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (jwtBlacklistService.isBlacklisted(jwt)) {
                     log.warn("Attempted use of blacklisted JWT: {}", jwt);
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized
-                    return; // Stop processing this request
+                    return ; // Stop processing this request
                 }
                 // --- END NEW CHECK ---
 
